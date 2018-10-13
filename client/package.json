@@ -1,0 +1,35 @@
+{
+  "name": "client",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@reach/router": "^1.2.1",
+    "axios": "^0.18.0",
+    "brace": "^0.11.1",
+    "bulma": "^0.7.2",
+    "date-fns": "^1.29.0",
+    "emotion": "^9.2.12",
+    "react": "^16.5.2",
+    "react-ace": "^6.2.0",
+    "react-dom": "^16.5.2",
+    "react-loadable": "^5.5.0",
+    "react-scripts": "2.0.4",
+    "socket.io-client": "^2.1.1",
+    "unstated": "^2.1.1"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 11",
+    "not op_mini all"
+  ]
+}
