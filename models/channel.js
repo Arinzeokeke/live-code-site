@@ -9,6 +9,7 @@ const ChannelSchema = new mongoose.Schema(
     post: { type: mongoose.Schema.Types.ObjectId, ref: 'Post' },
     writers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
   },
+
   { timestamps: true }
 )
 

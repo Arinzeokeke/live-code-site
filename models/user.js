@@ -2,6 +2,7 @@ const mongoose = require('mongoose')
 const uniqueValidator = require('mongoose-unique-validator')
 const crypto = require('crypto')
 const jwt = require('jsonwebtoken')
+const boom = require('boom')
 const secret = require('../config').secret
 
 const UserSchema = new mongoose.Schema(
@@ -30,6 +31,36 @@ const UserSchema = new mongoose.Schema(
 )
 
 UserSchema.plugin(uniqueValidator, { message: 'is already taken.' })
+
+UserSchema.statics.loginUser = function({ username, password }) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const user = await this.findOne({ username })
+      if (!user || !user.validPassword(password)) {
+        return reject(boom.unauthorized('username or password is invalid'))
+      }
+      resolve(user)
+    } catch (err) {
+      reject(err)
+    }
+  })
+}
+
+UserSchema.statics.createUser = function(user) {
+  const _this = this
+  return new Promise(async (resolve, reject) => {
+    try {
+      //console.log(_this.model)
+      const user = _this.model('User')({ ...user })
+      user.setPassword(user.password)
+
+      await user.save()
+      resolve(user)
+    } catch (err) {
+      reject(err)
+    }
+  })
+}
 
 UserSchema.methods.validPassword = function(password) {
   const hash = crypto
