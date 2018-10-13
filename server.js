@@ -9,14 +9,8 @@ const DEFAULT_PORT = 3000
 const port = normalizePort(config.port)
 
 const server = http.Server(app.express)
-const io = require('socket.io')(server)
 
-io.sockets.on('connection', function(socket) {
-  console.log('client connect')
-  socket.on('echo', function(data) {
-    io.sockets.emit('message', data)
-  })
-})
+const io = require('./socket')(server)
 
 app.express.use((req, res, next) => {
   req.io = io

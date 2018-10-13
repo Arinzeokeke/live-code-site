@@ -1,6 +1,7 @@
 const Router = require('express').Router
 const boom = require('boom')
 const UserRouter = require('./user')
+const ChannelRouter = require('./channel')
 
 class Api {
   constructor(path = '/api/v1', config) {
@@ -33,8 +34,11 @@ class Api {
   services() {}
 
   routes() {
-    const userRouter = new UserRouter('/user')
+    const userRouter = new UserRouter('/users')
     this.router.use(userRouter.path, userRouter.router)
+
+    const channelRouter = new ChannelRouter('/channels')
+    this.router.use(channelRouter.path, channelRouter.router)
   }
 }
 

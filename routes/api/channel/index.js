@@ -14,22 +14,177 @@ class ChannelRouter {
     this.routes()
   }
 
-  async index(req, res, next) {}
+  isOwner(channel, user) {
+    return channel.owner.username === user.username
+  }
 
-  async create(req, res, next) {}
+  isWriter(channel, user) {
+    return channel.writers.some(wr => wr.username === user.username)
+  }
 
-  async show(req, res, next) {}
+  async index(req, res, next) {
+    try {
+      let query = {}
+      if (req.query.online) {
+        query.online = true
+      }
+      const channels = await Channel.find({ ...query }).populate('owner')
+      res.send({ channels: channels.map(u => u.toJSON()) })
+    } catch (err) {
+      return next(err)
+    }
+  }
 
-  async giveWriteAccess(req, res, next) {}
+  async create(req, res, next) {
+    try {
+      const channel = new Channel({ ...req.body, owner: req.currentUser })
+      const post = new Post({
+        extension: req.body.extension,
+        channel: channel
+      })
+      await post.save()
+      channel.post = post
+      await channel.save()
 
-  async revokeWriteAccess(req, res, next) {}
+      res.send({ channel: channeltoJSON })
+    } catch (err) {
+      return next(err)
+    }
+  }
 
-  async writeToPost(req, res, next) {}
+  async show(req, res, next) {
+    try {
+      res.send({ channel: channel.toJSON() })
+    } catch (err) {
+      return next(err)
+    }
+  }
+
+  async edit(req, res, next) {
+    // is owner
+    try {
+      if (!this.isOwner(req.channel, req.currentUser)) {
+        return boom.unauthorized('Only owners can edit')
+      }
+
+      await req.channel.update(req.body)
+      const channel = await CustomerProfile.findById(req.channel.id).populate(
+        'owner',
+        'participants',
+        'post',
+        'writers'
+      )
+
+      res.send({ channel: channel.toJSON() })
+
+      req.io.sockets.in(req.channel._id.toString()).emit('channel:edit', {
+        message: `Channel edited`,
+        data: {
+          channel: channel.toJSON()
+        }
+      })
+    } catch (err) {
+      return next(err)
+    }
+  }
+
+  async giveWriteAccess(req, res, next) {
+    // is owner
+    try {
+      if (!this.isOwner(req.channel, req.currentUser)) {
+        throw boom.unauthorized('Only owners can give write access')
+      }
+
+      const writers = await Promise.all(
+        req.body.writers.map(async w => await User.findOne({ username: w }))
+      )
+      writers.map(wr => {
+        if (wr) {
+          req.channel.writers.push(wr)
+        }
+      })
+      req.channel.save()
+
+      res.send({ channel: req.channel.toJSON() })
+
+      req.io.sockets.in(req.channel._id.toString()).emit('writer:add', {
+        message: `${req.body.writers.join(', ')} given write access`,
+        data: {
+          channel: req.channel.toJSON()
+        }
+      })
+    } catch (err) {
+      return next(err)
+    }
+  }
+
+  async revokeWriteAccess(req, res, next) {
+    // is owner
+    try {
+      if (!this.isOwner(req, channel, req.currentUser)) {
+        throw boom.unauthorized('Only owners can revoke write access')
+      }
+
+      const writers = await Promise.all(
+        req.body.writers.map(async w => await User.findOne({ username: w }))
+      )
+      writers.map(wr => {
+        if (wr) {
+          req.channel.writers.pull(wr)
+        }
+      })
+      req.channel.save()
+
+      res.send({ channel: req.channel.toJSON() })
+
+      req.io.sockets.in(req.channel._id.toString()).emit('writer:remove', {
+        message: `${req.body.writers.join(', ')} lost write access`,
+        data: {
+          channel: req.channel.toJSON()
+        }
+      })
+    } catch (err) {
+      return next(err)
+    }
+  }
+
+  async editPost(req, res, next) {
+    // is writer or owner
+    try {
+      if (
+        !(
+          this.isOwner(req.channel, req.currentUser) ||
+          this.isWriter(req.channel, req.currentUser)
+        )
+      ) {
+        throw boom.unauthorized('Only writers can write to post')
+      }
+      await req.channel.post.update(req.body)
+      const post = await Post.findById(req.channel.post._id)
+
+      res.send({ post: post.toJSON() })
+
+      req.io.sockets.in(req.channel._id.toString()).emit('edit:post', {
+        message: `Post Edited`,
+        data: {
+          post: post.toJSON()
+        }
+      })
+    } catch (err) {
+      return next(err)
+    }
+  }
 
   async get(req, res, next) {
     try {
-      console.log(req.io)
-      res.status(200).send({ hello: 'there' })
+      const channel = await Channel.findOne({
+        id: req.params.id
+      }).populate('owner', 'participants', 'post', 'writers')
+      if (!channel) {
+        return next(boom.notFound(`Channel with id ${req.params.id} not found`))
+      }
+      req.channel = channel
+      return next()
     } catch (err) {
       return next(err)
     }
@@ -40,11 +195,12 @@ class ChannelRouter {
     this.router.get('', auth.required, getCurrentUser, this.index.bind(this))
     this.router.post('', auth.required, getCurrentUser, this.create.bind(this))
     this.router.get('/:id', auth.required, getCurrentUser, this.show.bind(this))
+    this.router.put('/:id', auth.required, getCurrentUser, this.edit.bind(this))
     this.router.post(
-      '/:id/write',
+      '/:id/post/write',
       auth.required,
       getCurrentUser,
-      this.writeToPost.bind(this)
+      this.edit.bind(this)
     )
     this.router.post(
       '/:id/write-access',
@@ -61,4 +217,4 @@ class ChannelRouter {
   }
 }
 
-module.exports = UserRouter
+module.exports = ChannelRouter
