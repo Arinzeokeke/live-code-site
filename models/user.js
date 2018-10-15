@@ -46,13 +46,13 @@ UserSchema.statics.loginUser = function({ username, password }) {
   })
 }
 
-UserSchema.statics.createUser = function(user) {
+UserSchema.statics.createUser = function(body) {
   const _this = this
   return new Promise(async (resolve, reject) => {
     try {
       //console.log(_this.model)
-      const user = _this.model('User')({ ...user })
-      user.setPassword(user.password)
+      const user = _this.model('User')({ ...body })
+      user.setPassword(body.password)
 
       await user.save()
       resolve(user)

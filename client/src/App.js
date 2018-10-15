@@ -1,28 +1,35 @@
-import React, { Component } from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { Component } from 'react'
+import { Subscribe } from 'unstated'
+import AppContainer from './containers/AppContainer'
 
 class App extends Component {
+  componentDidMount() {
+    console.log(this.props)
+    this.props.appLoad()
+  }
+
   render() {
-    return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            Edit <code>src/App.js</code> and save to reload.
-          </p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-        </header>
-      </div>
-    );
+    const { loaded } = this.props
+
+    if (!loaded) {
+      return (
+        <div>
+          <p> Loading...</p>
+        </div>
+      )
+    }
+
+    return this.props.children
   }
 }
 
-export default App;
+const AppConnected = props => {
+  return (
+    <Subscribe to={[AppContainer]}>
+      {({ state: { user, loaded }, appLoad }) => {
+        return <App {...props} user={user} loaded={loaded} appLoad={appLoad} />
+      }}
+    </Subscribe>
+  )
+}
+export default AppConnected

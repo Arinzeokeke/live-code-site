@@ -1,28 +1,28 @@
-import React, { Component } from 'react'
+import React from 'react'
 import { Subscribe } from 'unstated'
-import { Redirect } from '@reach/router'
+import AppContainer from '../containers/AppContainer'
 
-export default ChildComponent => {
-  class RequireAuth extends Component {
-    render() {
-      switch (this.props.user) {
-        case false:
-          return <Redirect to="/login" />
-        case null:
-          return <div>Loading...</div>
-        default:
-          return <ChildComponent {...this.props} />
-      }
-    }
-  }
-
-  return props => {
-    return (
-      <Subscribe>
-        {({ state: { user } }) => {
-          return <RequireAuth {...props} />
-        }}
-      </Subscribe>
-    )
+const Switch = props => {
+  const { Component, FallbackComponent, user, ...rest } = props
+  if (!user || !Component) {
+    return <FallbackComponent {...rest} />
+  } else {
+    return <Component {...rest} />
   }
 }
+const signedOutFallback = (Component, FallbackComponent) => {
+  return props => (
+    <Subscribe to={[AppContainer]}>
+      {({ state: { user } }) => (
+        <Switch
+          user={user}
+          FallbackComponent={FallbackComponent}
+          Component={Component}
+          {...props}
+        />
+      )}
+    </Subscribe>
+  )
+}
+
+export default signedOutFallback

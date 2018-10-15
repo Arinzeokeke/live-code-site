@@ -40,13 +40,14 @@ class ChannelRouter {
       const channel = new Channel({ ...req.body, owner: req.currentUser })
       const post = new Post({
         extension: req.body.extension,
-        channel: channel
+        channel: channel._id
       })
+
+      channel.post = post._id
       await post.save()
-      channel.post = post
       await channel.save()
 
-      res.send({ channel: channeltoJSON })
+      res.send({ channel: channel.toJSON() })
     } catch (err) {
       return next(err)
     }
@@ -68,12 +69,13 @@ class ChannelRouter {
       }
 
       await req.channel.update(req.body)
-      const channel = await CustomerProfile.findById(req.channel.id).populate(
+      const channel = await Channel.findById(req.channel.id)
+      await Channel.populate(channel, [
         'owner',
         'participants',
         'post',
         'writers'
-      )
+      ])
 
       res.send({ channel: channel.toJSON() })
 
@@ -179,10 +181,19 @@ class ChannelRouter {
     try {
       const channel = await Channel.findOne({
         id: req.params.id
-      }).populate('owner', 'participants', 'post', 'writers')
+      })
+
       if (!channel) {
         return next(boom.notFound(`Channel with id ${req.params.id} not found`))
       }
+
+      await Channel.populate(channel, [
+        'owner',
+        'participants',
+        'post',
+        'writers'
+      ])
+
       req.channel = channel
       return next()
     } catch (err) {

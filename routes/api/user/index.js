@@ -7,7 +7,7 @@ const Channel = require('../../../models/channel')
 const { validate, auth, getCurrentUser } = require('../../../middlewares')
 
 class UserRouter {
-  constructor(path = '/user') {
+  constructor(path = '/users') {
     this.router = Router()
     this.path = path
     this.routes()
@@ -34,7 +34,7 @@ class UserRouter {
   async create(req, res, next) {
     try {
       const user = await User.createUser(req.body)
-      res.send({ user: user.toJSON() })
+      res.send({ user: user.toAuthJSON() })
     } catch (err) {
       return next(err)
     }

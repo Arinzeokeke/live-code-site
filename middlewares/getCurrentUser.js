@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const User = mongoose.model('User')
 const boom = require('boom')
 
 const Customer = mongoose.model('User')
