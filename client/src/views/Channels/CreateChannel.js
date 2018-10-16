@@ -35,9 +35,10 @@ class CreateChannel extends React.Component {
           <div className="card-content">
             <Form
               onSubmit={this.handleSubmit.bind(this)}
-              render={({ handleSubmit, submitting, valid }) => {
+              render={({ handleSubmit, submitting, valid, values }) => {
+                console.log(values)
                 return (
-                  <form onSubmit={handleSubmit} className="col s12">
+                  <form onSubmit={handleSubmit}>
                     <React.Fragment>
                       <FormField
                         name="title"

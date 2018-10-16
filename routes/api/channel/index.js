@@ -28,7 +28,8 @@ class ChannelRouter {
       if (req.query.online) {
         query.online = true
       }
-      const channels = await Channel.find({ ...query }).populate('owner')
+      const channels = await Channel.find({ ...query })
+      await Channel.populate(channels, ['owner'])
       res.send({ channels: channels.map(u => u.toJSON()) })
     } catch (err) {
       return next(err)
@@ -55,7 +56,7 @@ class ChannelRouter {
 
   async show(req, res, next) {
     try {
-      res.send({ channel: channel.toJSON() })
+      res.send({ channel: req.channel.toJSON() })
     } catch (err) {
       return next(err)
     }
@@ -63,6 +64,7 @@ class ChannelRouter {
 
   async edit(req, res, next) {
     // is owner
+    console.log('================>edit')
     try {
       if (!this.isOwner(req.channel, req.currentUser)) {
         return boom.unauthorized('Only owners can edit')
@@ -152,6 +154,7 @@ class ChannelRouter {
 
   async editPost(req, res, next) {
     // is writer or owner
+    console.log('================>')
     try {
       if (
         !(
@@ -161,6 +164,7 @@ class ChannelRouter {
       ) {
         throw boom.unauthorized('Only writers can write to post')
       }
+
       await req.channel.post.update(req.body)
       const post = await Post.findById(req.channel.post._id)
 
@@ -180,7 +184,7 @@ class ChannelRouter {
   async get(req, res, next) {
     try {
       const channel = await Channel.findOne({
-        id: req.params.id
+        _id: req.params.id
       })
 
       if (!channel) {
@@ -211,7 +215,7 @@ class ChannelRouter {
       '/:id/post/write',
       auth.required,
       getCurrentUser,
-      this.edit.bind(this)
+      this.editPost.bind(this)
     )
     this.router.post(
       '/:id/write-access',

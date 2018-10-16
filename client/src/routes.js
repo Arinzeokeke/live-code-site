@@ -29,25 +29,30 @@ export default class Routes extends React.Component {
         <React.Fragment>
           <App>
             <Header />
-            <div className="container">
-              <Switch>
-                <Route exact path="/" component={CreateChannelsRedirect} />
-                <Route path="/login" component={Login} />
-                <Route path="/register" component={Register} />
-                <Route
-                  exact
-                  path="/:username/channels"
-                  component={LoginRedirect(ChannelsRedirect)}
-                />
-                <Route
-                  path="/channels/create"
-                  component={CreateChannelsRedirect}
-                />
-                <Route
-                  path="/channels/:id"
-                  component={LoginRedirect(ChannelPageRedirect)}
-                />
-              </Switch>
+            <div
+              style={{
+                backgroundColor: '#FAFAFA',
+                minHeight: '100vh',
+                paddingTop: '3rem'
+              }}
+            >
+              <div className="container">
+                <Switch>
+                  <Route exact path="/" component={CreateChannelsRedirect} />
+                  <Route path="/login" component={Login} />
+                  <Route path="/register" component={Register} />
+                  <Route
+                    exact
+                    path="/:username/channels"
+                    component={ChannelsRedirect}
+                  />
+                  <Route
+                    path="/channels/create"
+                    component={CreateChannelsRedirect}
+                  />
+                  <Route path="/channels/:id" component={ChannelPageRedirect} />
+                </Switch>
+              </div>
             </div>
           </App>
         </React.Fragment>

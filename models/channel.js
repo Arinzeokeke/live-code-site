@@ -41,4 +41,16 @@ ChannelSchema.statics.removeParticipant = function({ user, channelId }) {
   })
 }
 
+ChannelSchema.methods.toJSON = function() {
+  return {
+    id: this.id,
+    title: this.title,
+    owner: this.owner,
+    participants: this.participants,
+    online: this.online,
+    post: this.post,
+    writers: this.writers
+  }
+}
+
 module.exports = mongoose.model('Channel', ChannelSchema)

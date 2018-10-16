@@ -1,30 +1,39 @@
 import React from 'react'
+import { Subscribe } from 'unstated'
+import { Link } from 'react-router-dom'
+import AppContainer from '../containers/AppContainer'
 
 class Header extends React.Component {
+  state = { active: false }
+
+  toggleActive = () => this.setState(s => ({ active: !s.active }))
+
   render() {
+    const isActiveClass = this.state.active ? 'is-active' : ''
     return (
       <nav
-        className="navbar"
+        className="navbar is-primary"
         role="navigation"
         aria-label="main navigation"
-        style={{ marginBottom: '2rem' }}
       >
         <div className="navbar-brand">
-          <a className="navbar-item" href="https://bulma.io">
-            <img
-              src="https://bulma.io/images/bulma-logo.png"
-              width="112"
-              height="28"
-              alt="logo"
-            />
-          </a>
+          <p
+            style={{
+              fontFamily: ['Pacifico', 'cursive'],
+              fontSize: '3rem',
+              padding: '0.3rem'
+            }}
+          >
+            Collaborate.
+          </p>
 
           <a
-            role="button"
-            className="navbar-burger burger"
+            className={`navbar-burger burger ${isActiveClass}`}
             aria-label="menu"
             aria-expanded="false"
             data-target="navbarBasicExample"
+            onClick={this.toggleActive}
+            role={'button'}
           >
             <span aria-hidden="true" />
             <span aria-hidden="true" />
@@ -32,32 +41,38 @@ class Header extends React.Component {
           </a>
         </div>
 
-        <div id="navbarBasicExample" className="navbar-menu">
-          <div className="navbar-start">
-            <a className="navbar-item">Home</a>
-
-            <a className="navbar-item">Documentation</a>
-
-            <div className="navbar-item has-dropdown is-hoverable">
-              <a className="navbar-link">More</a>
-
-              <div className="navbar-dropdown">
-                <a className="navbar-item">About</a>
-                <a className="navbar-item">Jobs</a>
-                <a className="navbar-item">Contact</a>
-                <hr className="navbar-divider" />
-                <a className="navbar-item">Report an issue</a>
-              </div>
-            </div>
-          </div>
-
+        <div id="navbarBasicExample" className={`navbar-menu ${isActiveClass}`}>
           <div className="navbar-end">
             <div className="navbar-item">
               <div className="buttons">
-                <a className="button is-primary">
-                  <strong>Sign up</strong>
-                </a>
-                <a className="button is-light">Log in</a>
+                {this.props.user ? (
+                  <React.Fragment>
+                    <Link
+                      to={`/${this.props.user.username}/channels`}
+                      className="button is-primary"
+                    >
+                      <strong>Your Channels</strong>
+                    </Link>
+                    <Link to={`/channels/create`} className="button is-primary">
+                      <strong>Create A Channel</strong>
+                    </Link>
+                    <button
+                      className="button is-danger"
+                      onClick={this.props.logout}
+                    >
+                      Log Out
+                    </button>
+                  </React.Fragment>
+                ) : (
+                  <React.Fragment>
+                    <Link to="/register" className="button is-primary">
+                      <strong>Sign up</strong>
+                    </Link>
+                    <Link className="button is-light" to="/login">
+                      Log in
+                    </Link>
+                  </React.Fragment>
+                )}
               </div>
             </div>
           </div>
@@ -67,4 +82,14 @@ class Header extends React.Component {
   }
 }
 
-export default Header
+const HeaderConnected = props => {
+  return (
+    <Subscribe to={[AppContainer]}>
+      {({ state: { user }, logout }) => {
+        return <Header {...props} user={user} logout={logout} />
+      }}
+    </Subscribe>
+  )
+}
+
+export default HeaderConnected

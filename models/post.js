@@ -15,4 +15,13 @@ const PostSchema = new mongoose.Schema(
   { timestamps: true }
 )
 
+PostSchema.methods.toJSON = function() {
+  return {
+    id: this.id,
+    content: this.content,
+    extension: this.extension,
+    channel: this.channel
+  }
+}
+
 module.exports = mongoose.model('Post', PostSchema)

@@ -1,24 +1,23 @@
 import React from 'react'
+import moment from 'moment'
 import { Link } from 'react-router-dom'
 import { Users } from '../../agent'
 
-const ChannelCard = props => {
+const ChannelCard = ({ channel }) => {
   return (
     <div className="card">
       <header className="card-header">
-        <p className="card-header-title">{`${props.title} (${
-          props.online ? 'online' : 'offline'
-        })`}</p>
+        <p className="card-header-title">{`${channel.title}`}</p>
       </header>
       <div className="card-content">
         <div className="content">
-          Created by @{props.owner.username}
+          Created by @{channel.owner.username}
           <br />
-          <time datetime="2016-1-1">{props.createdAt}</time>
+          <em>{moment(channel.createdAt).fromNow()}</em>
         </div>
       </div>
       <footer className="card-footer">
-        <Link to={`/channels/${props.id}`} className="card-footer-item">
+        <Link to={`/channels/${channel.id}`} className="card-footer-item">
           View Channel
         </Link>
       </footer>
@@ -41,9 +40,10 @@ class Channels extends React.Component {
     const { username } = this.props.match.params
     try {
       const { channels } = await Users.channels(username)
-      this.setState({ channels, loading: false })
+      console.log(channels)
+      this.setState({ channels, loading: false, username })
     } catch (error) {
-      this.setState({ loading: false, error })
+      this.setState({ loading: false, error, username })
     }
   }
   render() {
@@ -62,13 +62,20 @@ class Channels extends React.Component {
     }
 
     return (
-      <div class="columns is-multiline is-centered">
-        {channels.map(c => (
-          <div className="column is-one-quarter" key={c.id}>
-            <ChannelCard channel={c} />
-          </div>
-        ))}
-      </div>
+      <React.Fragment>
+        <h1 style={{ textAlign: 'center', fontSize: '2rem' }}>
+          {this.state.username}
+          's Channels
+        </h1>
+        <hr />
+        <div className="columns is-multiline is-centered">
+          {channels.map(c => (
+            <div className="column is-one-quarter" key={c.id}>
+              <ChannelCard channel={c} />
+            </div>
+          ))}
+        </div>
+      </React.Fragment>
     )
   }
 }

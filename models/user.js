@@ -93,6 +93,7 @@ UserSchema.methods.generateJWT = function() {
 
 UserSchema.methods.toAuthJSON = function() {
   return {
+    id: this.id,
     username: this.username,
     email: this.email,
     token: this.generateJWT()
@@ -101,6 +102,7 @@ UserSchema.methods.toAuthJSON = function() {
 
 UserSchema.methods.toJSON = function() {
   return {
+    id: this.id,
     username: this.username,
     email: this.email
   }

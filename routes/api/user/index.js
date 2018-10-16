@@ -63,6 +63,7 @@ class UserRouter {
         query.online = true
       }
       const channels = await Channel.find(query)
+      await Channel.populate(channels, ['owner'])
 
       res.send({ channels: channels.map(c => c.toJSON()) })
     } catch (err) {
