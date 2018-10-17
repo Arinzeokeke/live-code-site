@@ -1,10 +1,11 @@
 import React from 'react'
 import AceEditor from 'react-ace'
 import debounce from 'lodash.debounce'
+import io from 'socket.io-client'
 import 'brace/mode/jsx'
+import ChannelParticipants from './ChannelParticipants'
 import { Channels } from '../../../agent'
 import { languages } from '../../../config'
-/*eslint-disable no-alert, no-console */
 import 'brace/ext/language_tools'
 import 'brace/ext/searchbox'
 
@@ -35,11 +36,12 @@ class ChannelPage extends React.Component {
     channel: null,
     loading: true,
     error: null,
+    isOwner: false,
+    isWriter: false,
     modeChanging: false,
     value: '',
     readOnly: false,
     theme: 'tomorrow',
-    mode: 'javascript',
     enableBasicAutocompletion: false,
     enableLiveAutocompletion: false,
     fontSize: 14,
@@ -47,11 +49,126 @@ class ChannelPage extends React.Component {
     showPrintMargin: true,
     highlightActiveLine: true,
     enableSnippets: false,
-    showLineNumbers: true
+    showLineNumbers: true,
+    socketEndpoint: 'http://localhost:8001',
+    socket: null
   }
 
   componentDidMount() {
     this.fetchChannel()
+  }
+
+  componentWillUnmount() {
+    this.state.socket.emit('leave:channel', {
+      channelId: this.state.channel.id
+    })
+  }
+
+  socketSetup(channel) {
+    // SOCKET IO SHIT YO
+
+    const socket = io(this.state.socketEndpoint, {
+      query: {
+        username: this.props.user.username
+      }
+    })
+
+    const updateChannel = ({ data: { channel } }) => {
+      console.log('channel updated', channel)
+      this.setState(s => ({ channel }), () => this.resolvePermissions())
+    }
+    const updateParticipants = ({ data: { participants } }) => {
+      console.log('participants updated', participants)
+      this.setState(s => ({
+        channel: { ...s.channel, participants }
+      }))
+    }
+
+    const updatePost = ({ data: { post } }) => {
+      console.log('post updated', post)
+      this.setState(s => ({
+        channel: { ...s.channel, post },
+        value: post.content
+      }))
+    }
+
+    socket.on('reconnect_attempt', () => {
+      socket.io.opts.query = { username: this.props.user.username }
+    })
+    socket.on('connect', function() {
+      // Join Channel
+      socket.emit('join:channel', { channelId: channel.id })
+    })
+
+    // New Participant Joined
+    socket.on('joined:channel', updateParticipants.bind(this))
+
+    // Participant Leaves
+    socket.on('left:channel', updateParticipants.bind(this))
+
+    // New Writer/s added
+    socket.on('writer:add', updateChannel.bind(this))
+
+    // Channel Edited
+    socket.on('channel:edit', updateChannel.bind(this))
+
+    // Writers removed
+    socket.on('writer:remove', updateChannel.bind(this))
+
+    //Post Edited
+    socket.on('edit:post', updatePost.bind(this))
+
+    this.setState({ socket })
+  }
+
+  async fetchChannel() {
+    this.setState({ loading: true })
+    const { id } = this.props.match.params
+    try {
+      const { channel } = await Channels.show(id)
+      this.setState(
+        {
+          channel,
+          loading: false,
+          mode: channel.post.extension,
+          value: channel.post.content
+        },
+        () => this.resolvePermissions()
+      )
+      this.socketSetup(channel)
+    } catch (error) {
+      this.setState({ loading: false, error })
+    }
+  }
+
+  resolvePermissions() {
+    const { channel } = this.state
+    console.log(channel, this.props)
+    const isOwner = this.props.user.username === channel.owner.username
+    const isWriter = channel.writers.some(
+      wr => wr.username === this.props.user.username
+    )
+    this.setState({ isOwner, isWriter })
+  }
+
+  async giveWriteAccess(username) {
+    try {
+      const { channel } = await Channels.giveWriteAccess(
+        this.state.channel.id,
+        [username]
+      )
+      this.setState(s => ({ channel }), () => this.resolvePermissions())
+    } catch {}
+  }
+
+  async revokeWriteAccess(username) {
+    try {
+      const { channel } = await Channels.revokeWriteAccess(
+        this.state.channel.id,
+        [username]
+      )
+      this.setState(s => ({ channel }), () => this.resolvePermissions())
+    } catch {}
   }
 
   onLoad() {
@@ -65,7 +182,7 @@ class ChannelPage extends React.Component {
     this.debouncedSendChanges()
   }
 
-  debouncedSendChanges = debounce(this.sendChanges, 1000)
+  debouncedSendChanges = debounce(this.sendChanges, 500)
 
   async sendChanges() {
     const { value } = this.state
@@ -74,7 +191,10 @@ class ChannelPage extends React.Component {
       const { post } = await Channels.editPost(this.state.channel.id, {
         content: value
       })
-      this.setState({ post, value: post.content })
+      this.setState(s => ({
+        channel: { ...s.channel, post },
+        value: post.content
+      }))
     } catch (err) {
       console.log(err)
     }
@@ -101,23 +221,31 @@ class ChannelPage extends React.Component {
   }
   async setMode(e) {
     const oldMode = this.state.channel.post.extension
-    this.setState({
+    const newMode = e.target.value
+    console.log(newMode)
+    this.setState(s => ({
       modeChanging: true,
-      mode: e.target.value
-    })
+      channel: {
+        ...s.channel,
+        post: { ...s.channel.post, extension: newMode }
+      }
+    }))
     try {
       const { post } = await Channels.editPost(this.state.channel.id, {
-        extension: e.target.value
+        extension: newMode
       })
-      this.setState({
+      this.setState(s => ({
         modeChanging: false,
-        post
-      })
+        channel: { ...s.channel, post }
+      }))
     } catch (err) {
-      this.setState({
+      this.setState(s => ({
         modeChanging: false,
-        mode: oldMode
-      })
+        channel: {
+          ...s.channel,
+          post: { ...s.channel.post, extension: oldMode }
+        }
+      }))
     }
   }
   setBoolean(name, value) {
@@ -153,25 +281,27 @@ class ChannelPage extends React.Component {
             </select>
           </div>
         </div>
-        <div className="column">
-          <div
-            className={`select is-rounded ${
-              this.state.modeChanging ? 'is-loading' : ''
-            }`}
-          >
-            <select
-              name="mode"
-              onChange={this.setMode.bind(this)}
-              value={this.state.mode}
+        {this.state.isOwner || this.state.isWriter ? (
+          <div className="column">
+            <div
+              className={`select is-rounded ${
+                this.state.modeChanging ? 'is-loading' : ''
+              }`}
             >
-              {languages.map(lang => (
-                <option key={lang} value={lang}>
-                  {lang}
-                </option>
-              ))}
-            </select>
+              <select
+                name="mode"
+                onChange={this.setMode.bind(this)}
+                value={this.state.channel.post.extension}
+              >
+                {languages.map(lang => (
+                  <option key={lang} value={lang}>
+                    {lang}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
-        </div>
+        ) : null}
       </div>
     )
   }
@@ -182,7 +312,7 @@ class ChannelPage extends React.Component {
       <div className="examples column">
         <h2>Editor</h2>
         <AceEditor
-          mode={this.state.mode}
+          mode={this.state.channel.post.extension}
           theme={this.state.theme}
           name={this.state.channel.title}
           onLoad={this.onLoad.bind(this)}
@@ -193,7 +323,7 @@ class ChannelPage extends React.Component {
           highlightActiveLine={true}
           value={this.state.value}
           width="100%"
-          readOnly={this.state.readOnly}
+          readOnly={!(this.state.isOwner || this.state.isWriter)}
           setOptions={{
             enableBasicAutocompletion: true,
             enableLiveAutocompletion: true,
@@ -204,24 +334,6 @@ class ChannelPage extends React.Component {
         />
       </div>
     )
-  }
-
-  async fetchChannel() {
-    this.setState({ loading: true })
-    const { id } = this.props.match.params
-    try {
-      const { channel } = await Channels.show(id)
-      console.log(channel)
-      this.setState({
-        channel,
-        post: channel.post,
-        loading: false,
-        mode: channel.post.extension,
-        value: channel.post.content
-      })
-    } catch (error) {
-      this.setState({ loading: false, error })
-    }
   }
 
   render() {
@@ -239,6 +351,13 @@ class ChannelPage extends React.Component {
       <React.Fragment>
         {this.renderHeader()}
         {this.renderChannel()}
+        <ChannelParticipants
+          channel={channel}
+          isOwner={this.state.isOwner}
+          giveWriteAccess={this.giveWriteAccess.bind(this)}
+          revokeWriteAccess={this.revokeWriteAccess.bind(this)}
+          user={this.props.user}
+        />
       </React.Fragment>
     )
   }

@@ -43,7 +43,7 @@ export const Channels = {
   editPost: (id, body) =>
     axiosInstance.post(`/channels/${id}/post/write`, body),
   giveWriteAccess: (id, writers) =>
-    axiosInstance.post(`/channels/${id}/post/write-access`, { writers }),
+    axiosInstance.post(`/channels/${id}/write-access`, { writers }),
   revokeWriteAccess: (id, writers) =>
-    axiosInstance.get(`/channels/${id}/post/write-access`, { writers })
+    axiosInstance.post(`/channels/${id}/revoke-access`, { writers })
 }

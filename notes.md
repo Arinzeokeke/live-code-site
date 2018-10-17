@@ -7,3 +7,9 @@
 - In Edit Post endpoint, broadcast changes to all participants
 
 - In Edit Channel endpoint, broadcast changes to all participants
+
+## 17Oct
+
+- Handle Participants Issue
+
+- Remove User from all Channels where he's a participant on disconnection

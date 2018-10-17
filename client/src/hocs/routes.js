@@ -7,7 +7,7 @@ const Switch = props => {
   if (!user || !Component) {
     return <FallbackComponent {...rest} />
   } else {
-    return <Component {...rest} />
+    return <Component {...rest} user={user} />
   }
 }
 const signedOutFallback = (Component, FallbackComponent) => {

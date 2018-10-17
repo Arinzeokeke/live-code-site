@@ -17,10 +17,18 @@ ChannelSchema.statics.addParticipant = function({ user, channelId }) {
   let _this = this
   return new Promise(async (resolve, reject) => {
     try {
-      const channel = _this.findOne({ _id: channelId })
-      channel.participants.push(user)
-      await channel.save()
-      resolve()
+      const channel = await _this.model('Channel').findById(channelId)
+      console.log(channel.title)
+      if (
+        !channel.participants.some(p => p.toString() === user._id.toString())
+      ) {
+        channel.participants.push(user._id)
+        await channel.save()
+      }
+
+      await _this.model('Channel').populate(channel, ['participants'])
+
+      resolve(channel.participants)
     } catch (error) {
       reject(error)
     }
@@ -31,10 +39,11 @@ ChannelSchema.statics.removeParticipant = function({ user, channelId }) {
   let _this = this
   return new Promise(async (resolve, reject) => {
     try {
-      const channel = _this.findOne({ _id: channelId })
+      const channel = await _this.findOne({ _id: channelId })
       channel.participants.pull(user)
       await channel.save()
-      resolve()
+      await _this.populate(channel, ['participants'])
+      resolve(channel.participants)
     } catch (error) {
       reject(error)
     }

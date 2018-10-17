@@ -67,7 +67,7 @@ class ChannelRouter {
     console.log('================>edit')
     try {
       if (!this.isOwner(req.channel, req.currentUser)) {
-        return boom.unauthorized('Only owners can edit')
+        throw boom.unauthorized('Only owners can edit')
       }
 
       await req.channel.update(req.body)
@@ -94,6 +94,7 @@ class ChannelRouter {
 
   async giveWriteAccess(req, res, next) {
     // is owner
+    console.log('write access')
     try {
       if (!this.isOwner(req.channel, req.currentUser)) {
         throw boom.unauthorized('Only owners can give write access')
@@ -103,7 +104,12 @@ class ChannelRouter {
         req.body.writers.map(async w => await User.findOne({ username: w }))
       )
       writers.map(wr => {
-        if (wr) {
+        if (
+          wr &&
+          !req.channel.writers.some(
+            writer => writer._id.toString() === wr._id.toString()
+          )
+        ) {
           req.channel.writers.push(wr)
         }
       })
@@ -124,8 +130,9 @@ class ChannelRouter {
 
   async revokeWriteAccess(req, res, next) {
     // is owner
+    console.log(req.body)
     try {
-      if (!this.isOwner(req, channel, req.currentUser)) {
+      if (!this.isOwner(req.channel, req.currentUser)) {
         throw boom.unauthorized('Only owners can revoke write access')
       }
 
@@ -154,7 +161,6 @@ class ChannelRouter {
 
   async editPost(req, res, next) {
     // is writer or owner
-    console.log('================>')
     try {
       if (
         !(
@@ -223,8 +229,8 @@ class ChannelRouter {
       getCurrentUser,
       this.giveWriteAccess.bind(this)
     )
-    this.router.delete(
-      '/:id/write-access',
+    this.router.post(
+      '/:id/revoke-access',
       auth.required,
       getCurrentUser,
       this.revokeWriteAccess.bind(this)

@@ -3,7 +3,6 @@ import { Form } from 'react-final-form'
 
 import { centerParent } from '../../components/globals'
 import FormField from '../../components/formHelpers/FormField'
-import SelectorField from '../../components/formHelpers/SelectorField'
 import { required } from '../../components/formHelpers/util'
 
 import { languages } from '../../config'
@@ -36,7 +35,6 @@ class CreateChannel extends React.Component {
             <Form
               onSubmit={this.handleSubmit.bind(this)}
               render={({ handleSubmit, submitting, valid, values }) => {
-                console.log(values)
                 return (
                   <form onSubmit={handleSubmit}>
                     <React.Fragment>
@@ -46,13 +44,6 @@ class CreateChannel extends React.Component {
                         validators={[required]}
                         type="text"
                       />
-
-                      <SelectorField
-                        name="online"
-                        type="checkbox"
-                        options={['Channel Online']}
-                      />
-                      <br />
 
                       <FormField
                         name="extension"
@@ -64,7 +55,11 @@ class CreateChannel extends React.Component {
 
                       <div className="field">
                         <div className={`control ${centerParent}`}>
-                          <button type="submit" className="button is-primary">
+                          <button
+                            type="submit"
+                            className="button is-primary"
+                            disabled={!valid}
+                          >
                             Create Channel
                           </button>
                         </div>
