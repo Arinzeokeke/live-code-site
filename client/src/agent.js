@@ -1,9 +1,6 @@
 import axios from 'axios'
 
-const API_ROOT = 'http://localhost:8001/api/v1'
-
 const axiosInstance = axios.create({
-  baseURL: API_ROOT,
   timeout: 30000
 })
 
@@ -26,24 +23,24 @@ axiosInstance.interceptors.response.use(
 )
 
 export const Users = {
-  create: body => axiosInstance.post('/users', body),
+  create: body => axiosInstance.post('/api/v1/users', body),
   index: () => axiosInstance.get('/users'),
-  show: username => axiosInstance.get(`/users/${username}`),
+  show: username => axiosInstance.get(`/api/v1/users/${username}`),
   login: ({ username, password }) =>
-    axiosInstance.post(`/users/login`, { username, password }),
-  current: () => axiosInstance.get(`/users/current`),
-  channels: username => axiosInstance.get(`/users/${username}/channels`)
+    axiosInstance.post(`/api/v1/users/login`, { username, password }),
+  current: () => axiosInstance.get(`/api/v1/users/current`),
+  channels: username => axiosInstance.get(`/api/v1/users/${username}/channels`)
 }
 
 export const Channels = {
-  update: (id, body) => axiosInstance.put(`/channels/${id}`, body),
-  create: body => axiosInstance.post('/channels', body),
-  index: filter => axiosInstance.get(`/channels`),
-  show: id => axiosInstance.get(`/channels/${id}`),
+  update: (id, body) => axiosInstance.put(`/api/v1/channels/${id}`, body),
+  create: body => axiosInstance.post('/api/v1/channels', body),
+  index: filter => axiosInstance.get(`/api/v1/channels`),
+  show: id => axiosInstance.get(`/api/v1/channels/${id}`),
   editPost: (id, body) =>
-    axiosInstance.post(`/channels/${id}/post/write`, body),
+    axiosInstance.post(`/api/v1/channels/${id}/post/write`, body),
   giveWriteAccess: (id, writers) =>
-    axiosInstance.post(`/channels/${id}/write-access`, { writers }),
+    axiosInstance.post(`/api/v1/channels/${id}/write-access`, { writers }),
   revokeWriteAccess: (id, writers) =>
-    axiosInstance.post(`/channels/${id}/revoke-access`, { writers })
+    axiosInstance.post(`/api/v1/channels/${id}/revoke-access`, { writers })
 }
