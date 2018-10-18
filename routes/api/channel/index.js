@@ -64,7 +64,6 @@ class ChannelRouter {
 
   async edit(req, res, next) {
     // is owner
-    console.log('================>edit')
     try {
       if (!this.isOwner(req.channel, req.currentUser)) {
         throw boom.unauthorized('Only owners can edit')
@@ -94,7 +93,6 @@ class ChannelRouter {
 
   async giveWriteAccess(req, res, next) {
     // is owner
-    console.log('write access')
     try {
       if (!this.isOwner(req.channel, req.currentUser)) {
         throw boom.unauthorized('Only owners can give write access')
@@ -130,7 +128,6 @@ class ChannelRouter {
 
   async revokeWriteAccess(req, res, next) {
     // is owner
-    console.log(req.body)
     try {
       if (!this.isOwner(req.channel, req.currentUser)) {
         throw boom.unauthorized('Only owners can revoke write access')
