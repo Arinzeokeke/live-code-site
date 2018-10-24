@@ -50,7 +50,6 @@ class ChannelPage extends React.Component {
     highlightActiveLine: true,
     enableSnippets: false,
     showLineNumbers: true,
-    socketEndpoint: 'http://localhost:8001',
     socket: null
   }
 
@@ -67,7 +66,7 @@ class ChannelPage extends React.Component {
   socketSetup(channel) {
     // SOCKET IO SHIT YO
 
-    const socket = io(this.state.socketEndpoint, {
+    const socket = io({
       query: {
         username: this.props.user.username
       }
@@ -182,7 +181,7 @@ class ChannelPage extends React.Component {
     this.debouncedSendChanges()
   }
 
-  debouncedSendChanges = debounce(this.sendChanges, 500)
+  debouncedSendChanges = debounce(this.sendChanges, 1000)
 
   async sendChanges() {
     const { value } = this.state
