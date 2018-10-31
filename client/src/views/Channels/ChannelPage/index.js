@@ -44,7 +44,7 @@ class ChannelPage extends React.Component {
     theme: 'tomorrow',
     enableBasicAutocompletion: false,
     enableLiveAutocompletion: false,
-    fontSize: 14,
+    fontSize: 16,
     showGutter: true,
     showPrintMargin: true,
     highlightActiveLine: true,
@@ -191,8 +191,7 @@ class ChannelPage extends React.Component {
         content: value
       })
       this.setState(s => ({
-        channel: { ...s.channel, post },
-        value: post.content
+        channel: { ...s.channel, post }
       }))
     } catch (err) {
       console.log(err)

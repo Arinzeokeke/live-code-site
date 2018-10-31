@@ -25,8 +25,12 @@ class App {
 
   registerRoutes() {
     this.routes()
+
     if (process.env.NODE_ENV === 'production') {
       this.express.use(express.static('client/build'))
+      this.express.get('/docs', function(req, res) {
+        res.redirect('/apidoc')
+      })
       const path = require('path')
       this.express.get('*', (req, res) => {
         res.sendFile(path.resolve(__dirname, 'client', 'build', 'index.html'))

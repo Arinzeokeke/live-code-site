@@ -35,6 +35,7 @@ class Api {
 
   routes() {
     const userRouter = new UserRouter('/users')
+
     this.router.use(userRouter.path, userRouter.router)
 
     const channelRouter = new ChannelRouter('/channels')
