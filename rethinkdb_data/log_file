@@ -1,0 +1,20 @@
+2018-10-23T14:15:35.163779406 0.230125s notice: Recursively removing directory /home/arinze/Projects/makolo/rethinkdb_data/tmp
+2018-10-23T14:15:35.202084379 0.268446s notice: Initializing directory /home/arinze/Projects/makolo/rethinkdb_data
+2018-10-23T14:15:35.202544470 0.268892s info: Creating a default database for your convenience. (This is because you ran 'rethinkdb' without 'create', 'serve', or '--join', and the directory '/home/arinze/Projects/makolo/rethinkdb_data' did not already exist or is empty.)
+2018-10-23T14:15:35.213300566 0.279648s notice: Running rethinkdb 2.3.6 (GCC 5.4.0)...
+2018-10-23T14:15:35.222161571 0.288512s notice: Running on Linux 4.8.0-52-generic x86_64
+2018-10-23T14:15:35.222307806 0.288652s notice: Loading data from directory /home/arinze/Projects/makolo/rethinkdb_data
+2018-10-23T14:15:35.615045642 0.681400s info: Automatically using cache size of 1221 MB
+2018-10-23T14:15:35.617481245 0.683826s notice: Listening for intracluster connections on port 29015
+2018-10-23T14:15:35.624639103 0.690984s notice: Listening for client driver connections on port 28015
+2018-10-23T14:15:35.625387196 0.691732s notice: Listening for administrative HTTP connections on port 8080
+2018-10-23T14:15:35.625405454 0.691750s notice: Listening on cluster addresses: 127.0.0.1, 127.0.1.1, ::1
+2018-10-23T14:15:35.625414493 0.691758s notice: Listening on driver addresses: 127.0.0.1, 127.0.1.1, ::1
+2018-10-23T14:15:35.625432371 0.691776s notice: Listening on http addresses: 127.0.0.1, 127.0.1.1, ::1
+2018-10-23T14:15:35.625440011 0.691783s notice: To fully expose RethinkDB on the network, bind to all addresses by running rethinkdb with the `--bind all` command line option.
+2018-10-23T14:15:35.625453207 0.691797s notice: Server ready, "universe_clv" a9f60e96-8379-4a9a-8059-e8ee4a3f5009
+2018-10-23T17:43:44.613954800 8223.526729s notice: Server got SIGINT from pid 0, uid 0; shutting down...
+2018-10-23T17:43:44.714805808 8223.627579s notice: Shutting down client connections...
+2018-10-23T17:43:44.716349819 8223.629122s notice: All client connections closed.
+2018-10-23T17:43:44.716368811 8223.629141s notice: Shutting down storage engine... (This may take a while if you had a lot of unflushed data in the writeback cache.)
+2018-10-23T17:43:44.837236605 8223.750010s notice: Storage engine shut down.
